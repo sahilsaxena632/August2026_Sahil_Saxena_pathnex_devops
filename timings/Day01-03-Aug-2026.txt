@@ -1,0 +1,10 @@
+Day 01 - 03 Aug 2026
+Linux (Amazon Linux on EC2)
+
+Study hours: 4.5 hours
+
+Breakdown:
+- 0.5 hr  : Setting up / connecting to the EC2 instance with SSH
+- 1.0 hr  : Learning navigation commands (pwd, ls, cd, whoami, hostname)
+- 1.0 hr  : Practicing files & folders (mkdir, touch, cat, cp, mv, rm)
+- 2.0 hr  : Checking system info and Installing nano with dnf 
