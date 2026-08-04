@@ -1,0 +1,85 @@
+# Connected to the EC2 instance using SSH and with key pair i created
+# Checked who I am logged in as
+whoami
+
+# Checked current date and uptime of the instance
+date
+uptime
+
+
+# Printed the current working directory
+pwd
+
+# Listed files in the home directory
+ls
+ls -l
+ls -al
+
+
+# Created a practice folder for day 2
+mkdir linux-practice-day2
+cd linux-practice-day2
+mkdir notes scripts logs
+touch notes/day2.txt scripts/hello.sh logs/app.log
+
+# Wrote some sample content into files
+echo "Day 2 of learning Linux on EC2" > notes/day2.txt
+echo "error: disk almost full" > logs/app.log
+echo "info: service started" >> logs/app.log
+echo "error: connection failed" >> logs/app.log
+cat notes/day2.txt
+
+
+# Practiced viewing files with less head and tail
+head logs/app.log
+tail logs/app.log
+less notes/day2.txt
+
+
+# Practiced searching inside files with grep
+grep error logs/app.log
+grep -i ERROR logs/app.log
+grep -n error logs/app.log
+
+
+# Practiced finding files and folders
+find . -name "*.txt"
+find . -type f
+find . -type d
+
+
+# Practiced pipes and redirection
+ls -l | head
+ps aux | grep ec2-user
+cat logs/app.log | grep error > logs/errors-only.txt
+cat logs/errors-only.txt
+echo "extra line" >> notes/day2.txt
+wc -l logs/app.log
+
+
+# Practiced history and clearing the screen
+history
+history | tail
+clear
+
+
+# Checked permissions and changed them
+ls -al scripts/hello.sh
+echo 'echo hello from day 2' > scripts/hello.sh
+chmod 755 scripts/hello.sh
+ls -al scripts/hello.sh
+./scripts/hello.sh
+
+
+# Checked system resource usage a bit more 
+df -h
+free -h
+top
+ps aux | head
+
+
+# Removed practice files at the end of the session
+cd ~
+rm -rf linux-practice-day2
+
+terminated the ec2 instance
