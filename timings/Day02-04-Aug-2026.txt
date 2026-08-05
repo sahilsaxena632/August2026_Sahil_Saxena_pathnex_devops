@@ -1,0 +1,10 @@
+Day 02 - 04 Aug 2026
+Linux (Amazon Linux on EC2)
+
+Study hours: 5 hours
+
+Breakdown:
+- 1.0 hr  : Connecting to EC2 and revising day 1 commands (pwd, ls, cd)
+- 1.0 hr  : Viewing and searching files (head, tail, less, grep)
+- 1.0 hr  : Finding files and using pipes/redirection (find, |, >, >>)
+- 2.0 hr  : Permissions, and checking system resources

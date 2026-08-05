@@ -1,0 +1,67 @@
+# Connected to the EC2 instance using SSH and with key pair i created
+# Checked who I am logged in as
+whoami
+
+# Checked current date and uptime of the instance
+date
+uptime
+
+
+# Printed the current working directory
+pwd
+
+# Listed files in the home directory
+ls
+ls -l
+ls -al
+
+# Moved into common directories and came back
+cd /
+cd /home/ec2-user
+cd ~
+cd ..
+cd -
+
+
+# Checked running processes (first look)
+ps
+ps aux | head
+
+--- Files and folders practice ---
+# Created a practice folder and some files
+mkdir linux-practice
+cd linux-practice
+touch notes.txt
+mkdir day1 commands
+
+# Wrote a short note into a file
+echo "My first day learning Linux on EC2" > notes.txt
+cat notes.txt
+
+# Copied, renamed, and removed practice files
+cp notes.txt notes-backup.txt
+mv notes-backup.txt day1/
+rm day1/notes-backup.txt
+
+
+# Checked permissions on a file
+ls -al notes.txt
+
+# Made a simple script executable 
+echo 'echo hello' > hello.sh
+chmod +x hello.sh
+./hello.sh
+
+
+# Updated package metadata and searched a package
+sudo dnf update -y
+sudo dnf search nano
+sudo dnf install -y nano
+nano notes.txt
+
+
+# Removed practice files at the end of the session
+cd ~
+rm -rf linux-practice
+
+terminated the ec2 instance
