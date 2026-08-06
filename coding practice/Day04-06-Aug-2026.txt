@@ -1,0 +1,126 @@
+# Connected to the EC2 instance using SSH and with key pair i created
+# Created a practice folder for day 4 pathnex tasks
+mkdir pathnex-day4
+cd pathnex-day4
+
+
+# Wrote a basic Jenkinsfile for build test deploy
+cat > Jenkinsfile << 'EOF'
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building project'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Running tests'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying application'
+            }
+        }
+    }
+}
+EOF
+cat Jenkinsfile
+
+
+# Wrote a basic GitLab CI pipeline
+cat > .gitlab-ci.yml << 'EOF'
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  script:
+    - echo "Building project"
+
+test:
+  stage: test
+  script:
+    - echo "Running tests"
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying application"
+EOF
+cat .gitlab-ci.yml
+
+
+# Wrote ansible playbook to install and configure nginx
+cat > nginx.yml << 'EOF'
+- name: Install and configure Nginx
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install nginx
+      yum:
+        name: nginx
+        state: present
+    - name: Configure nginx
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+    - name: Start nginx service
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+EOF
+ansible-playbook nginx.yml
+
+
+# Wrote terraform security group for ssh and http
+cat > sg.tf << 'EOF'
+resource "aws_security_group" "example" {
+  name        = "example_security_group"
+  description = "Allow SSH and HTTP"
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+EOF
+terraform init
+terraform plan
+
+
+# Built an apache docker container
+cat > Dockerfile << 'EOF'
+FROM ubuntu:22.04
+RUN apt update && apt install apache2 -y
+RUN echo "Hello Pathnex" > /var/www/html/index.html
+CMD ["apachectl", "-D", "FOREGROUND"]
+EOF
+docker build -t pathnex-apache .
+docker run -d -p 80:80 pathnex-apache
+docker ps
+
+
+# Removed practice files at the end of the session
+cd ~
+rm -rf pathnex-day4
+
+terminated the ec2 instance

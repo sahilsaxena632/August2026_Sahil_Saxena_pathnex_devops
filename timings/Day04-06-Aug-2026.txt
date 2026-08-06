@@ -1,0 +1,10 @@
+Day 04 - 06 Aug 2026
+Git
+
+Study hours: 5 hours
+
+Breakdown:
+- 1.0 hr  : Understanding git init add commit and status
+- 1.0 hr  : Learning branches checkout and merge
+- 1.5 hr  : Practicing git log diff and restoring files
+- 1.5 hr  : Working with remotes push pull and clone
