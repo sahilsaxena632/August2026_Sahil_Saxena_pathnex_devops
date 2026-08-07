@@ -1,0 +1,10 @@
+Day 05 - 07 Aug 2026
+AWS
+
+Study hours: 7 hours
+
+Breakdown:
+- 1.0 hr  : AWS account IAM users and MFA basics
+- 2.0 hr  : Launching and connecting to EC2 instances
+- 2.0 hr  : Understanding regions AZs and security groups
+- 2.0 hr  : Installing and using AWS CLI for simple commands
