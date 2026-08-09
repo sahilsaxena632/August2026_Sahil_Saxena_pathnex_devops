@@ -1,0 +1,10 @@
+Day 07 - 09 Aug 2026
+AWS
+
+Study hours: 5 hours
+
+Breakdown:
+- 1.0 hr  : Revising VPC and S3 from yesterday
+- 1.5 hr  : Learning EBS volumes snapshots and attaching disks
+- 1.5 hr  : Elastic IPs and basic networking checks
+- 1.0 hr  : Using AWS CLI to describe instances and buckets
