@@ -1,0 +1,120 @@
+# Connected to the EC2 instance using SSH and with key pair i created
+# Created a practice folder for day 9 pathnex tasks
+mkdir pathnex-day9
+cd pathnex-day9
+
+
+# Wrote ansible playbook to pull and run nginx container
+cat > nginx-container.yml << 'EOF'
+- name: Setup Docker Container for Nginx
+  hosts: all
+  become: yes
+  tasks:
+    - name: Pull Nginx image
+      docker_image:
+        name: nginx
+        source: pull
+    - name: Run Nginx container
+      docker_container:
+        name: nginx-container
+        image: nginx
+        state: started
+        published_ports:
+          - "8080:80"
+EOF
+ansible-playbook nginx-container.yml
+
+
+# Wrote terraform launch config and autoscaling group
+cat > asg.tf << 'EOF'
+resource "aws_launch_configuration" "example" {
+  name          = "example-config"
+  image_id      = "ami-0abcd1234abcd1234"
+  instance_type = "t3.medium"
+}
+
+resource "aws_autoscaling_group" "example" {
+  desired_capacity     = 2
+  max_size             = 3
+  min_size             = 1
+  vpc_zone_identifier  = ["subnet-12345678"]
+  launch_configuration = aws_launch_configuration.example.id
+}
+EOF
+terraform init
+terraform plan
+
+
+# Wrote kubernetes deployment and hpa
+cat > hpa.yaml << 'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pathnex-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pathnex-app
+  template:
+    metadata:
+      labels:
+        app: pathnex-app
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pathnex-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pathnex-deployment
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50
+EOF
+kubectl apply -f hpa.yaml
+kubectl get hpa
+
+
+# Wrote Jenkinsfile to deploy to kubernetes
+cat > Jenkinsfile << 'EOF'
+pipeline {
+    agent any
+    stages {
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    sh 'kubectl apply -f deployment.yaml'
+                }
+            }
+        }
+    }
+}
+EOF
+cat Jenkinsfile
+
+
+# Practiced dockerfile env variables
+cat > Dockerfile << 'EOF'
+FROM ubuntu:22.04
+ENV INSTITUTE=Pathnex
+ENV COURSE=DevOps
+CMD echo "$INSTITUTE - $COURSE"
+EOF
+docker build -t pathnex-env .
+docker run pathnex-env
+
+
+# Removed practice files at the end of the session
+cd ~
+rm -rf pathnex-day9
+
+terminated the ec2 instance
