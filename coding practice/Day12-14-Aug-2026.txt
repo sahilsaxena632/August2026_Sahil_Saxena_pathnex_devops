@@ -1,0 +1,135 @@
+# Connected to the EC2 instance using SSH and with key pair i created
+# Created a practice folder for day 12 pathnex tasks
+mkdir pathnex-day12
+cd pathnex-day12
+
+
+# Wrote ansible playbook for auto scaling group
+cat > asg.yml << 'EOF'
+- name: Setup Auto Scaling Group
+  hosts: all
+  become: yes
+  tasks:
+    - name: Create Launch Configuration
+      ec2_asg:
+        name: pathnex-asg
+        region: us-east-1
+        launch_config_name: pathnex-launch-config
+        min_size: 1
+        max_size: 3
+        desired_capacity: 2
+        vpc_zone_identifier: subnet-12345678
+EOF
+ansible-playbook asg.yml
+
+
+# Wrote terraform load balancer and ec2
+cat > alb.tf << 'EOF'
+resource "aws_lb" "pathnex_lb" {
+  name               = "pathnex-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.allow_ssh_http.id]
+  subnets            = [aws_subnet.public.id]
+}
+
+resource "aws_instance" "pathnex_ec2" {
+  ami             = "ami-0abcd1234abcd1234"
+  instance_type   = "t2.micro"
+  security_groups = [aws_security_group.allow_ssh_http.name]
+  tags = {
+    Name = "Pathnex-EC2"
+  }
+}
+EOF
+terraform init
+terraform plan
+
+
+# Wrote kubernetes deployment with hpa
+cat > web-hpa.yaml << 'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pathnex-web-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pathnex-web-app
+  template:
+    metadata:
+      labels:
+        app: pathnex-web-app
+    spec:
+      containers:
+        - name: web
+          image: nginx
+          ports:
+            - containerPort: 80
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pathnex-web-app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pathnex-web-app
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+EOF
+kubectl apply -f web-hpa.yaml
+kubectl get deploy
+kubectl get hpa
+
+
+# Wrote Jenkinsfile with parallel stages
+cat > Jenkinsfile << 'EOF'
+pipeline {
+    agent any
+    stages {
+        stage('Build & Test') {
+            parallel {
+                stage('Build') {
+                    steps {
+                        echo 'Building project...'
+                    }
+                }
+                stage('Test') {
+                    steps {
+                        echo 'Running tests...'
+                    }
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying project...'
+            }
+        }
+    }
+}
+EOF
+cat Jenkinsfile
+
+
+# Practiced docker volumes
+cat > Dockerfile << 'EOF'
+FROM ubuntu
+VOLUME ["/opt/pathnex/data"]
+CMD ["sleep", "1000"]
+EOF
+docker volume create pathnex-volume
+docker build -t pathnex-volume-app .
+docker run -d -v pathnex-volume:/opt/pathnex/data pathnex-volume-app
+docker volume ls
+
+
+# Removed practice files at the end of the session
+cd ~
+rm -rf pathnex-day12
+
+terminated the ec2 instance
