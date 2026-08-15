@@ -1,0 +1,149 @@
+# Connected to the EC2 instance using SSH and with key pair i created
+# Created a practice folder for day 13 pathnex tasks
+mkdir pathnex-day13
+cd pathnex-day13
+
+
+# Wrote ansible playbook to setup nginx on multiple nodes
+cat > nginx-multi.yml << 'EOF'
+- name: Setup Nginx on multiple nodes
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install nginx
+      yum:
+        name: nginx
+        state: present
+    - name: Start nginx service
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+EOF
+ansible-playbook nginx-multi.yml
+
+
+# Wrote terraform iam user and policy
+cat > iam.tf << 'EOF'
+resource "aws_iam_user" "example_user" {
+  name = "pathnex_user"
+}
+
+resource "aws_iam_policy" "example_policy" {
+  name        = "pathnex-policy"
+  description = "Policy for Pathnex application"
+  policy      = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action   = "s3:ListBucket"
+        Effect   = "Allow"
+        Resource = "arn:aws:s3:::pathnex-bucket"
+      },
+    ]
+  })
+}
+EOF
+terraform init
+terraform plan
+
+
+# Wrote kubernetes nginx with configmap and secret
+cat > nginx-config.yaml << 'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |
+    server {
+      listen 80;
+      server_name localhost;
+      location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+      }
+    }
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nginx-secret
+type: Opaque
+data:
+  password: cGF0aG5leHBhc3M=
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pathnex-nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pathnex-nginx
+  template:
+    metadata:
+      labels:
+        app: pathnex-nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          volumeMounts:
+            - mountPath: /etc/nginx/nginx.conf
+              name: nginx-config
+              subPath: nginx.conf
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+        - name: nginx-secret
+          secret:
+            secretName: nginx-secret
+EOF
+kubectl apply -f nginx-config.yaml
+kubectl get deploy pathnex-nginx
+
+
+# Wrote Jenkinsfile docker build and kubectl deploy
+cat > Jenkinsfile << 'EOF'
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    docker.build('pathnex-app')
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                script {
+                    sh 'kubectl apply -f kubernetes/deployment.yaml'
+                }
+            }
+        }
+    }
+}
+EOF
+cat Jenkinsfile
+
+
+# Practiced dockerfile COPY vs ADD
+echo "pathnex notes" > pathnex-file.txt
+tar -czf pathnex.tar.gz pathnex-file.txt
+cat > Dockerfile << 'EOF'
+FROM ubuntu
+COPY pathnex-file.txt /opt/pathnex/files/
+ADD pathnex.tar.gz /opt/pathnex/extracted/
+EOF
+docker build -t pathnex-copy-add .
+
+
+# Removed practice files at the end of the session
+cd ~
+rm -rf pathnex-day13
+
+terminated the ec2 instance
