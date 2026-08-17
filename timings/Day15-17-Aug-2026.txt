@@ -1,0 +1,10 @@
+Day 15 - 17 Aug 2026
+Kubernetes
+
+Study hours: 6 hours
+
+Breakdown:
+- 1.0 hr  : Revising ingress helm and namespaces
+- 2.0 hr  : Jobs CronJobs and probing liveness/readiness
+- 1.5 hr  : NetworkPolicy at a basic level
+- 1.5 hr  : Cluster cleanup and recap of week kubernetes topics
