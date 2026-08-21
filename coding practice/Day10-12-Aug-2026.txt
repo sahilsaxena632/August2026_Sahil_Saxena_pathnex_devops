@@ -1,0 +1,150 @@
+# Connected to the EC2 instance using SSH and with key pair i created
+# Created a practice folder for day 10 pathnex tasks
+mkdir pathnex-day10
+cd pathnex-day10
+
+
+# Wrote ansible playbook to run web and database containers
+cat > multi-app.yml << 'EOF'
+- name: Setup Docker Containers for Multiple Apps
+  hosts: all
+  become: yes
+  tasks:
+    - name: Pull Web App Image
+      docker_image:
+        name: my-web-app
+        source: pull
+    - name: Pull Database App Image
+      docker_image:
+        name: my-database-app
+        source: pull
+    - name: Run Web App Container
+      docker_container:
+        name: web-app
+        image: my-web-app
+        state: started
+        published_ports:
+          - "8080:80"
+    - name: Run Database App Container
+      docker_container:
+        name: database-app
+        image: my-database-app
+        state: started
+        published_ports:
+          - "3306:3306"
+EOF
+ansible-playbook multi-app.yml
+
+
+# Wrote terraform vpc with public and private subnets
+cat > vpc.tf << 'EOF'
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+}
+
+resource "aws_subnet" "public" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-1a"
+  map_public_ip_on_launch = true
+}
+
+resource "aws_subnet" "private" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "us-east-1b"
+}
+EOF
+terraform init
+terraform plan
+
+
+# Wrote kubernetes StatefulSet for mysql
+cat > statefulset.yaml << 'EOF'
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pathnex-db
+spec:
+  serviceName: "pathnex-db"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: pathnex-db
+  template:
+    metadata:
+      labels:
+        app: pathnex-db
+    spec:
+      containers:
+        - name: db
+          image: mysql:5.7
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-storage
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+EOF
+kubectl apply -f statefulset.yaml
+kubectl get statefulset
+
+
+# Wrote Jenkinsfile build push and deploy
+cat > Jenkinsfile << 'EOF'
+pipeline {
+    agent any
+    environment {
+        IMAGE_NAME = 'pathnex-web-app'
+    }
+    stages {
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("${env.IMAGE_NAME}")
+                }
+            }
+        }
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://docker.io', 'docker-credentials') {
+                        docker.image("${env.IMAGE_NAME}").push('latest')
+                    }
+                }
+            }
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    sh 'kubectl apply -f deployment.yaml'
+                }
+            }
+        }
+    }
+}
+EOF
+cat Jenkinsfile
+
+
+# Practiced dockerfile workdir and copy
+cat > Dockerfile << 'EOF'
+FROM ubuntu:22.04
+WORKDIR /opt/pathnex/devops-project
+COPY . /opt/pathnex/devops-project/
+CMD ["ls", "-l", "/opt/pathnex/devops-project"]
+EOF
+docker build -t pathnex-workdir .
+docker run pathnex-workdir
+
+
+# Removed practice files at the end of the session
+cd ~
+rm -rf pathnex-day10
+
+terminated the ec2 instance

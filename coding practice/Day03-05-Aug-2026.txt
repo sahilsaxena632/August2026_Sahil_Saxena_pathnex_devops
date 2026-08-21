@@ -1,0 +1,95 @@
+# Connected to the EC2 instance using SSH and with key pair i created
+# Created a practice folder for day 3 pathnex tasks
+mkdir pathnex-day3
+cd pathnex-day3
+
+
+# Wrote ansible playbook to install and start apache
+cat > apache.yml << 'EOF'
+- name: Install and Start Apache
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install apache
+      yum:
+        name: httpd
+        state: present
+    - name: Start apache
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+EOF
+ansible-playbook apache.yml
+
+
+# Wrote terraform file for a t3.medium Pathnex EC2
+cat > main.tf << 'EOF'
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "PathnexEC2" {
+  ami           = "ami-0abcd1234abcd1234"
+  instance_type = "t3.medium"
+  tags = {
+    Name = "Pathnex-T3"
+  }
+}
+EOF
+terraform init
+terraform plan
+
+
+# Wrote kubernetes ReplicaSet with 3 replicas
+cat > replicaset.yaml << 'EOF'
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: pathnex-replicaset
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: pathnex-app
+  template:
+    metadata:
+      labels:
+        app: pathnex-app
+    spec:
+      containers:
+        - name: app
+          image: nginx
+          ports:
+            - containerPort: 80
+EOF
+kubectl apply -f replicaset.yaml
+kubectl get rs
+
+
+# Practiced a small shell script for user info
+cat > userinfo.sh << 'EOF'
+#!/bin/bash
+echo "Current user: $(whoami)"
+echo "Current user groups: $(groups)"
+EOF
+chmod +x userinfo.sh
+./userinfo.sh
+
+
+# Built a simple nginx docker image
+echo "<h1>Hello Pathnex</h1>" > index.html
+cat > Dockerfile << 'EOF'
+FROM nginx:latest
+COPY index.html /usr/share/nginx/html/index.html
+EOF
+docker build -t pathnex-nginx .
+docker run -d -p 80:80 pathnex-nginx
+docker ps
+
+
+# Removed practice files at the end of the session
+cd ~
+rm -rf pathnex-day3
+
+terminated the ec2 instance

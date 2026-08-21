@@ -1,0 +1,10 @@
+Day 11 - 13 Aug 2026
+Kubernetes
+
+Study hours: 7 hours
+
+Breakdown:
+- 1.0 hr  : Revising pods deployments and kubectl
+- 2.0 hr  : Services ClusterIP NodePort and Cluster DNS
+- 2.0 hr  : ConfigMaps and Secrets
+- 2.0 hr  : Rolling updates and scaling a deployment

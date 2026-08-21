@@ -1,0 +1,101 @@
+# Connected to the EC2 instance using SSH and with key pair i created
+# Created a practice folder for day 6 pathnex tasks
+mkdir pathnex-day6
+cd pathnex-day6
+
+
+# Wrote ansible playbook to install and start docker
+cat > docker.yml << 'EOF'
+- name: Install Docker
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+    - name: Start Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+EOF
+ansible-playbook docker.yml
+
+
+# Wrote terraform vpc and ec2
+cat > vpc.tf << 'EOF'
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+}
+
+resource "aws_instance" "pathnex_ec2" {
+  ami           = "ami-0abcd1234abcd1234"
+  instance_type = "t3.medium"
+  subnet_id     = aws_subnet.main.id
+  tags = {
+    Name = "Pathnex-EC2"
+  }
+}
+EOF
+terraform init
+terraform plan
+
+
+# Wrote kubernetes pod with volume mount
+cat > pod.yaml << 'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pathnex-pod
+spec:
+  containers:
+    - name: web
+      image: nginx
+      volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: html-volume
+  volumes:
+    - name: html-volume
+      hostPath:
+        path: /data
+        type: Directory
+EOF
+kubectl apply -f pod.yaml
+kubectl get pods
+
+
+# Practiced a shell script to check running services
+cat > check-services.sh << 'EOF'
+#!/bin/bash
+services=("nginx" "docker" "httpd")
+for service in "${services[@]}"
+do
+  if systemctl is-active --quiet $service; then
+    echo "$service is running"
+  else
+    echo "$service is not running"
+  fi
+done
+EOF
+chmod +x check-services.sh
+./check-services.sh
+
+
+# Built a nodejs docker app
+echo 'console.log("Hello Pathnex");' > app.js
+cat > Dockerfile << 'EOF'
+FROM node:18
+WORKDIR /opt/pathnex/node-app
+COPY app.js /opt/pathnex/node-app/
+CMD ["node", "/opt/pathnex/node-app/app.js"]
+EOF
+docker build -t pathnex-node .
+docker run pathnex-node
+
+
+# Removed practice files at the end of the session
+cd ~
+rm -rf pathnex-day6
+
+terminated the ec2 instance

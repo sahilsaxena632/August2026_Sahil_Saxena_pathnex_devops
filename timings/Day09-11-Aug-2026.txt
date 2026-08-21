@@ -1,0 +1,10 @@
+Day 09 - 11 Aug 2026
+Docker
+
+Study hours: 6 hours
+
+Breakdown:
+- 1.0 hr  : Installing docker and checking docker version
+- 2.0 hr  : Images containers run ps and logs
+- 1.5 hr  : Writing a simple Dockerfile and building an image
+- 1.5 hr  : Port mapping and cleaning unused images/containers

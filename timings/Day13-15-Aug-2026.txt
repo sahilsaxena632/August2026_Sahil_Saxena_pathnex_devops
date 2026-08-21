@@ -1,0 +1,10 @@
+Day 13 - 15 Aug 2026
+Kubernetes
+
+Study hours: 5 hours
+
+Breakdown:
+- 1.0 hr  : Revising deployments and services
+- 1.5 hr  : Volumes emptyDir and hostPath
+- 1.5 hr  : PersistentVolume and PersistentVolumeClaim basics
+- 1.0 hr  : Checking storage with kubectl get pv pvc

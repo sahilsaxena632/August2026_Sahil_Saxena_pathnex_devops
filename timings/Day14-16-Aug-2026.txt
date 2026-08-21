@@ -1,0 +1,10 @@
+Day 14 - 16 Aug 2026
+Kubernetes
+
+Study hours: 7 hours
+
+Breakdown:
+- 1.0 hr  : Revising volumes and pvc
+- 2.0 hr  : Ingress and ingress controller basics
+- 2.0 hr  : Namespaces resource quotas and contexts
+- 2.0 hr  : Helm intro and installing a simple chart

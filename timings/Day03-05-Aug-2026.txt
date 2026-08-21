@@ -1,0 +1,10 @@
+Day 03 - 05 Aug 2026
+Linux (Amazon Linux on EC2)
+
+Study hours: 6 hours
+
+Breakdown:
+- 1.0 hr  : Revising users groups and file permissions (chmod chown)
+- 2.0 hr  : Learning systemd services (systemctl start stop status)
+- 1.0 hr  : Practicing vim and editing config files
+- 2.0 hr  : Package management with dnf and reading logs with journalctl

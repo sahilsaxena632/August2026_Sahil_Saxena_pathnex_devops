@@ -1,0 +1,10 @@
+Day 08 - 10 Aug 2026
+AWS
+
+Study hours: 7 hours
+
+Breakdown:
+- 1.0 hr  : Revising IAM EC2 and S3
+- 2.0 hr  : Application Load Balancer basics
+- 2.0 hr  : CloudWatch metrics and simple alarms
+- 2.0 hr  : Practicing AWS CLI for describe and terminate commands

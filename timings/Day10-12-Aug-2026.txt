@@ -1,0 +1,10 @@
+Day 10 - 12 Aug 2026
+Kubernetes
+
+Study hours: 5 hours
+
+Breakdown:
+- 1.0 hr  : Kubernetes architecture pods and nodes
+- 1.5 hr  : kubectl get describe and logs
+- 1.5 hr  : Creating a first pod and a deployment
+- 1.0 hr  : Namespaces and labels basics

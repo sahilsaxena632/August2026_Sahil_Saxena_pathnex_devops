@@ -1,0 +1,10 @@
+Day 06 - 08 Aug 2026
+AWS
+
+Study hours: 6 hours
+
+Breakdown:
+- 1.0 hr  : Revising EC2 and security groups
+- 2.0 hr  : Learning VPC subnets and route tables
+- 1.5 hr  : Creating and using an S3 bucket
+- 1.5 hr  : Practicing IAM roles and policies at a basic level
