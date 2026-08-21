@@ -1,0 +1,10 @@
+Day 19 - 21 Aug 2026
+Kubernetes
+
+Study hours: 7 hours
+
+Breakdown:
+- 1.0 hr  : Revising namespaces and resources
+- 2.0 hr  : Volumes emptyDir hostPath and pvc recap
+- 2.0 hr  : Ingress recap and service types
+- 2.0 hr  : Helm list install uninstall practice
