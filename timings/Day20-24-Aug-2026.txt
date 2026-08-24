@@ -1,0 +1,10 @@
+Day 20 - 24 Aug 2026
+Kubernetes
+
+Study hours: 6 hours
+
+Breakdown:
+- 1.0 hr  : Revising helm install list and uninstall
+- 2.0 hr  : kubectl explain and reading api resources
+- 1.5 hr  : Jobs CronJobs recap
+- 1.5 hr  : Checking node status and kubelet logs at a basic level
