@@ -1,0 +1,138 @@
+# Connected to the EC2 instance using SSH and with key pair i created
+# Created a practice folder for day 19 pathnex tasks
+mkdir pathnex-day19
+cd pathnex-day19
+
+
+# Wrote ansible playbook to install prometheus
+cat > prometheus.yml << 'EOF'
+- name: Install Prometheus for Monitoring
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Prometheus dependencies
+      yum:
+        name:
+          - prometheus
+          - prometheus-node-exporter
+        state: present
+    - name: Start Prometheus service
+      service:
+        name: prometheus
+        state: started
+        enabled: yes
+EOF
+ansible-playbook prometheus.yml
+
+
+# Wrote terraform cloudwatch log group and stream
+cat > cloudwatch.tf << 'EOF'
+resource "aws_cloudwatch_log_group" "pathnex_log_group" {
+  name = "pathnex-log-group"
+}
+
+resource "aws_cloudwatch_log_stream" "pathnex_log_stream" {
+  log_group_name = aws_cloudwatch_log_group.pathnex_log_group.name
+  name           = "pathnex-log-stream"
+}
+EOF
+terraform init
+terraform plan
+
+
+# Wrote kubernetes fluentd deployment and service
+cat > fluentd.yaml << 'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fluentd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fluentd
+  template:
+    metadata:
+      labels:
+        app: fluentd
+    spec:
+      containers:
+        - name: fluentd
+          image: fluent/fluentd
+          ports:
+            - containerPort: 24224
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fluentd
+spec:
+  selector:
+    app: fluentd
+  ports:
+    - protocol: TCP
+      port: 24224
+EOF
+kubectl apply -f fluentd.yaml
+kubectl get deploy fluentd
+kubectl get svc fluentd
+
+
+# Wrote Jenkinsfile to apply deploy and watch pods
+cat > Jenkinsfile << 'EOF'
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building Docker image...'
+                script {
+                    docker.build('pathnex-web-app')
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Running tests...'
+            }
+        }
+        stage('Monitor Deployment') {
+            steps {
+                script {
+                    sh 'kubectl apply -f kubernetes/deployment.yaml'
+                    sh 'kubectl get pods'
+                }
+            }
+        }
+    }
+}
+EOF
+cat Jenkinsfile
+
+
+# Built a flask docker app
+cat > app.py << 'EOF'
+from flask import Flask
+app = Flask(__name__)
+@app.route('/')
+def home():
+    return "Hello Pathnex"
+app.run(host='0.0.0.0', port=5000)
+EOF
+cat > Dockerfile << 'EOF'
+FROM python:3.11
+WORKDIR /opt/pathnex/flask-app
+COPY . /opt/pathnex/flask-app/
+RUN pip install flask
+CMD ["python", "/opt/pathnex/flask-app/app.py"]
+EOF
+docker build -t pathnex-flask .
+docker run -d -p 5000:5000 pathnex-flask
+docker ps
+
+
+# Removed practice files at the end of the session
+cd ~
+rm -rf pathnex-day19
+
+terminated the ec2 instance

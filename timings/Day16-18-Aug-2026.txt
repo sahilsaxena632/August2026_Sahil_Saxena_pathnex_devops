@@ -1,0 +1,10 @@
+Day 16 - 18 Aug 2026
+Kubernetes
+
+Study hours: 7 hours
+
+Breakdown:
+- 1.0 hr  : Revising kubectl get describe and logs
+- 2.0 hr  : Deployments rolling updates and rollbacks
+- 2.0 hr  : Services DNS and how pods talk to each other
+- 2.0 hr  : Reading kubernetes yaml and applying with kubectl apply

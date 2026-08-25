@@ -1,0 +1,135 @@
+# Connected to the EC2 instance using SSH and with key pair i created
+# Created a practice folder for day 18 pathnex tasks
+mkdir pathnex-day18
+cd pathnex-day18
+
+
+# Wrote ansible playbook to install and start haproxy
+cat > haproxy.yml << 'EOF'
+- name: Setup HAProxy Load Balancer
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install HAProxy
+      yum:
+        name: haproxy
+        state: present
+    - name: Configure HAProxy
+      template:
+        src: haproxy.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+    - name: Start HAProxy service
+      service:
+        name: haproxy
+        state: started
+        enabled: yes
+EOF
+ansible-playbook haproxy.yml
+
+
+# Wrote terraform alb and autoscaling group
+cat > asg-alb.tf << 'EOF'
+resource "aws_lb" "pathnex_lb" {
+  name               = "pathnex-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.allow_ssh_http.id]
+  subnets            = [aws_subnet.public.id, aws_subnet.public2.id]
+}
+
+resource "aws_autoscaling_group" "pathnex_asg" {
+  desired_capacity     = 3
+  max_size             = 5
+  min_size             = 2
+  vpc_zone_identifier  = [aws_subnet.public.id, aws_subnet.public2.id]
+  launch_configuration = aws_launch_configuration.pathnex_config.id
+}
+EOF
+terraform init
+terraform plan
+
+
+# Wrote kubernetes deployment with hpa
+cat > hpa.yaml << 'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pathnex-web-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: pathnex-web-app
+  template:
+    metadata:
+      labels:
+        app: pathnex-web-app
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pathnex-web-app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pathnex-web-app
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+EOF
+kubectl apply -f hpa.yaml
+kubectl get hpa
+
+
+# Wrote Jenkinsfile for blue green deploy
+cat > Jenkinsfile << 'EOF'
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building Docker image...'
+                script {
+                    docker.build('pathnex-web-app')
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Running tests...'
+            }
+        }
+        stage('Blue-Green Deployment') {
+            steps {
+                script {
+                    sh 'kubectl apply -f kubernetes/blue-deployment.yaml'
+                    sh 'kubectl apply -f kubernetes/green-deployment.yaml'
+                    sh 'kubectl rollout status deployment/blue-deployment'
+                    sh 'kubectl rollout status deployment/green-deployment'
+                }
+            }
+        }
+    }
+}
+EOF
+cat Jenkinsfile
+
+
+# Ran a redis docker container
+docker run -d --name pathnex-redis redis
+docker ps
+docker logs pathnex-redis | tail
+
+
+# Removed practice files at the end of the session
+cd ~
+rm -rf pathnex-day18
+
+terminated the ec2 instance
