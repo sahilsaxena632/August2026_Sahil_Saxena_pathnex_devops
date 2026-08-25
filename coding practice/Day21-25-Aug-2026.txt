@@ -1,0 +1,150 @@
+# Connected to the EC2 instance using SSH and with key pair i created
+# Created a practice folder for day 21 pathnex tasks
+mkdir pathnex-day21
+cd pathnex-day21
+
+
+# Wrote ansible playbook to backup and restore /etc
+cat > backup.yml << 'EOF'
+- name: Backup and Restore Files
+  hosts: all
+  become: yes
+  tasks:
+    - name: Create backup of /etc directory
+      command: tar -czvf /tmp/etc-backup.tar.gz /etc
+    - name: Copy backup to remote server
+      copy:
+        src: /tmp/etc-backup.tar.gz
+        dest: /tmp/etc-backup.tar.gz
+    - name: Restore backup from remote server
+      command: tar -xzvf /tmp/etc-backup.tar.gz -C /
+EOF
+ansible-playbook backup.yml
+
+
+# Wrote terraform s3 buckets with versioning
+cat > s3-backup.tf << 'EOF'
+resource "aws_s3_bucket" "pathnex_bucket" {
+  bucket = "pathnex-backup-bucket"
+
+  versioning {
+    enabled = true
+  }
+}
+
+resource "aws_s3_bucket" "pathnex_backup_bucket_eu" {
+  bucket = "pathnex-backup-bucket-eu"
+
+  versioning {
+    enabled = true
+  }
+}
+
+resource "aws_s3_bucket_object" "pathnex_backup_file" {
+  bucket = aws_s3_bucket.pathnex_bucket.bucket
+  key    = "backup.tar.gz"
+  source = "pathnex-backup.tar.gz"
+}
+EOF
+terraform init
+terraform plan
+
+
+# Wrote kubernetes statefulset with pvc
+cat > statefulset.yaml << 'EOF'
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pathnex-statefulset
+spec:
+  serviceName: "pathnex"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: pathnex
+  template:
+    metadata:
+      labels:
+        app: pathnex
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          volumeMounts:
+            - mountPath: /usr/share/nginx/html
+              name: web-content
+  volumeClaimTemplates:
+  - metadata:
+      name: web-content
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 5Gi
+EOF
+kubectl apply -f statefulset.yaml
+kubectl get statefulset
+kubectl get pvc
+
+
+# Wrote Jenkinsfile to backup and restore workspace
+cat > Jenkinsfile << 'EOF'
+pipeline {
+    agent any
+    stages {
+        stage('Backup') {
+            steps {
+                echo 'Backing up Jenkins workspace...'
+                sh 'tar -czvf /tmp/jenkins-backup.tar.gz ${WORKSPACE}'
+            }
+        }
+        stage('Restore') {
+            steps {
+                echo 'Restoring Jenkins workspace...'
+                sh 'tar -xzvf /tmp/jenkins-backup.tar.gz -C ${WORKSPACE}'
+            }
+        }
+    }
+}
+EOF
+cat Jenkinsfile
+
+
+# Wrote gitlab ci to backup and restore k8s yaml
+cat > .gitlab-ci.yml << 'EOF'
+stages:
+  - backup
+  - restore
+
+backup:
+  stage: backup
+  script:
+    - tar -czvf /tmp/backup.tar.gz kubernetes/deployment.yaml
+
+restore:
+  stage: restore
+  script:
+    - tar -xzvf /tmp/backup.tar.gz -C kubernetes/
+EOF
+cat .gitlab-ci.yml
+
+
+# Wrote a simple docker compose file for nginx
+cat > docker-compose.yml << 'EOF'
+version: '3'
+services:
+  web:
+    image: nginx
+    container_name: pathnex-nginx
+    ports:
+      - "80:80"
+EOF
+docker compose up -d
+docker ps
+
+
+# Removed practice files at the end of the session
+cd ~
+rm -rf pathnex-day21
+
+terminated the ec2 instance
